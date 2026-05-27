@@ -46,5 +46,5 @@ jobs:
 
       - name: Run tests
         run: |
-          cd test/vllm/hyperpod
-          pytest -v -s test_cluster_access.py --rootdir=.
+          cd test
+          pytest -v -s vllm/hyperpod/test_cluster_access.py
