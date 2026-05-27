@@ -41,10 +41,13 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m venv .venv
+          source .venv/bin/activate
           pip install -r test/requirements.txt
           pip install -r test/vllm/hyperpod/requirements.txt
 
       - name: Run tests
         run: |
+          source .venv/bin/activate
           cd test
-          pytest -v -s vllm/hyperpod/test_cluster_access.py
+          python3 -m pytest -vs vllm/hyperpod/test_cluster_access.py
