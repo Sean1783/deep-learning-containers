@@ -48,8 +48,8 @@ def test_health_endpoint():
     endpoint_name = "baseline"
     namespace = "default"
     
-    # Get pod name
-    pod_name = get_pod_name(endpoint_name, namespace)
+    # Wait for pod to be fully ready (all containers)
+    pod_name = wait_for_pod_ready(endpoint_name, namespace, timeout=300)
     print(f"Testing health endpoint on pod: {pod_name}")
     
     # Curl health endpoint from inside pod
@@ -69,6 +69,52 @@ def test_health_endpoint():
     
     assert status_code == "200", f"Expected 200, got {status_code}"
     print("Test passed: Health endpoint responds with 200")
+
+
+def wait_for_pod_ready(endpoint_name, namespace, timeout=300):
+    """
+    Wait for pod to be fully ready (all containers ready)
+    Returns pod name when ready
+    """
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
+        result = subprocess.run(
+            [
+                "kubectl", "get", "pods",
+                "-n", namespace,
+                "-l", f"app={endpoint_name}",
+                "-o", "json"
+            ],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        pods = json.loads(result.stdout)
+        
+        if not pods["items"]:
+            print(f"No pods found yet for {endpoint_name}, waiting...")
+            time.sleep(5)
+            continue
+        
+        pod = pods["items"][0]
+        pod_name = pod["metadata"]["name"]
+        
+        # Check if all containers are ready
+        container_statuses = pod["status"].get("containerStatuses", [])
+        ready_count = sum(1 for c in container_statuses if c.get("ready", False))
+        total_count = len(container_statuses)
+        
+        print(f"Pod {pod_name}: {ready_count}/{total_count} containers ready")
+        
+        if ready_count == total_count and total_count > 0:
+            print(f"Pod {pod_name} is fully ready")
+            return pod_name
+        
+        time.sleep(10)
+    
+    raise TimeoutError(f"Pod {endpoint_name} did not become ready within {timeout} seconds")
 
 
 def wait_for_pod_running(endpoint_name, namespace, timeout=120):
