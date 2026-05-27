@@ -1,0 +1,36 @@
+apiVersion: inference.sagemaker.aws.amazon.com/v1
+kind: InferenceEndpointConfig
+metadata:
+  name: baseline
+  namespace: default
+spec:
+  modelName: qwen2-1.5b-v2-test
+  endpointName: baseline-endpoint
+  instanceType: ml.g5.8xlarge
+  invocationEndpoint: v1/chat/completions
+  replicas: 1
+  modelSourceConfig:
+    modelSourceType: s3
+    s3Storage:
+      bucketName: data-capture-models-for-inference-endpoints
+      region: us-east-2
+    modelLocation: 0316-0907
+  worker:
+    image: vllm/vllm-openai:latest
+    command: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
+    resources:
+      requests:
+        nvidia.com/gpu: "1"
+      limits:
+        nvidia.com/gpu: "1"
+    args:
+      - "--model"
+      - "/opt/ml/model"
+      - "--port"
+      - "8000"      
+    modelInvocationPort:
+      containerPort: 8000
+      name: http
+    modelVolumeMount:
+      name: model-weights
+      mountPath: /opt/ml/model
