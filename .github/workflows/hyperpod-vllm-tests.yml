@@ -1,4 +1,4 @@
-name: Test EKS Access
+name: HyperPod vLLM Integration Tests
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  test-cluster-access:
+  test-vllm-integration:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -50,4 +50,4 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test
-          python3 -m pytest -vs vllm/hyperpod/test_cluster_access.py vllm/hyperpod/test_vllm_deploy.py
+          python3 -m pytest -vs vllm/hyperpod/test_vllm_kv_cache.py
