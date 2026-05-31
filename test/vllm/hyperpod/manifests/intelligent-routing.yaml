@@ -1,0 +1,43 @@
+apiVersion: inference.sagemaker.aws.amazon.com/v1
+kind: InferenceEndpointConfig
+metadata:
+  name: intelligent-routing
+  namespace: default
+spec:
+  endpointName: intelligent-routing
+  modelName: qwen2-1.5b-v2-test
+  instanceType: ml.g5.8xlarge
+  invocationEndpoint: v1/chat/completions
+  intelligentRoutingSpec:
+    enabled: true
+    routingStrategy: "prefixaware"
+  modelSourceConfig:
+    modelSourceType: s3
+    s3Storage:
+      bucketName: data-capture-models-for-inference-endpoints
+      region: us-east-2
+    modelLocation: 0316-0907
+    prefetchEnabled: false
+  kvCacheSpec:
+    enableL1Cache: true
+  worker:
+    resources:
+      limits:
+        nvidia.com/gpu: "1"
+      requests:
+        cpu: "6"
+        memory: 30Gi
+        nvidia.com/gpu: "1"
+    image: lmcache/vllm-openai:v0.4.3
+    args:
+    - "/opt/ml/model"
+    - "--max-model-len"
+    - "10000"
+    modelInvocationPort:
+      containerPort: 8000
+      name: http
+    modelVolumeMount:
+      name: model-weights
+      mountPath: /opt/ml/model
+  loadBalancer:
+    healthCheckPath: /health

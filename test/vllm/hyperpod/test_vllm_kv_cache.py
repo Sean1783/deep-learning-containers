@@ -51,6 +51,48 @@ def test_vllm_kv_cache_l1_l2_deployment():
     print("\n=== Test passed: vLLM KV Cache L1+L2 deployment validated ===")
 
 
+def test_vllm_kv_cache_l2_only_deployment():
+    """
+    Replicates: deploysKVCacheWithL2MembrainEnabled from G5IntegrationTests
+    
+    Workflow:
+    1. Apply InferenceEndpointConfig CRD with L2 cache only (no L1)
+    2. Wait for operator to create SageMaker Endpoint (InService)
+    3. Invoke SageMaker Endpoint with inference request
+    4. Verify L2 cache functionality
+    """
+    endpoint_name = "kv-cache-l2"
+    namespace = "default"
+    region = "us-east-2"
+    
+    apply_inference_endpoint_config(endpoint_name, namespace)
+    wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
+    invoke_endpoint_and_verify(endpoint_name, region)
+    
+    print("\n=== Test passed: vLLM KV Cache L2-only deployment validated ===")
+
+
+def test_vllm_intelligent_routing_deployment():
+    """
+    Replicates: deploysIntelligentRoutingWithL1Cache from G5IntegrationTests
+    
+    Workflow:
+    1. Apply InferenceEndpointConfig CRD with intelligent routing + L1 cache
+    2. Wait for operator to create SageMaker Endpoint (InService)
+    3. Invoke SageMaker Endpoint with inference request
+    4. Verify prefix-aware routing functionality
+    """
+    endpoint_name = "intelligent-routing"
+    namespace = "default"
+    region = "us-east-2"
+    
+    apply_inference_endpoint_config(endpoint_name, namespace)
+    wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
+    invoke_endpoint_and_verify(endpoint_name, region)
+    
+    print("\n=== Test passed: vLLM Intelligent Routing deployment validated ===")
+
+
 def apply_inference_endpoint_config(endpoint_name, namespace):
     """Apply InferenceEndpointConfig CRD"""
     manifest_path = os.path.join(
