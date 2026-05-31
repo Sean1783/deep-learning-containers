@@ -23,11 +23,13 @@ def test_vllm_kv_cache_l1_deployment():
     namespace = "default"
     region = "us-east-2"
     
-    apply_inference_endpoint_config(endpoint_name, namespace)
-    wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
-    invoke_endpoint_and_verify(endpoint_name, region)
-    
-    print("\n=== Test passed: vLLM KV Cache L1 deployment validated ===")
+    try:
+        apply_inference_endpoint_config(endpoint_name, namespace)
+        wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
+        invoke_endpoint_and_verify(endpoint_name, region)
+        print("\n=== Test passed: vLLM KV Cache L1 deployment validated ===")
+    finally:
+        cleanup_inference_endpoint_config(endpoint_name, namespace)
 
 
 def test_vllm_kv_cache_l1_l2_deployment():
@@ -44,11 +46,13 @@ def test_vllm_kv_cache_l1_l2_deployment():
     namespace = "default"
     region = "us-east-2"
     
-    apply_inference_endpoint_config(endpoint_name, namespace)
-    wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
-    invoke_endpoint_and_verify(endpoint_name, region)
-    
-    print("\n=== Test passed: vLLM KV Cache L1+L2 deployment validated ===")
+    try:
+        apply_inference_endpoint_config(endpoint_name, namespace)
+        wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
+        invoke_endpoint_and_verify(endpoint_name, region)
+        print("\n=== Test passed: vLLM KV Cache L1+L2 deployment validated ===")
+    finally:
+        cleanup_inference_endpoint_config(endpoint_name, namespace)
 
 
 def test_vllm_kv_cache_l2_only_deployment():
@@ -65,11 +69,13 @@ def test_vllm_kv_cache_l2_only_deployment():
     namespace = "default"
     region = "us-east-2"
     
-    apply_inference_endpoint_config(endpoint_name, namespace)
-    wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
-    invoke_endpoint_and_verify(endpoint_name, region)
-    
-    print("\n=== Test passed: vLLM KV Cache L2-only deployment validated ===")
+    try:
+        apply_inference_endpoint_config(endpoint_name, namespace)
+        wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
+        invoke_endpoint_and_verify(endpoint_name, region)
+        print("\n=== Test passed: vLLM KV Cache L2-only deployment validated ===")
+    finally:
+        cleanup_inference_endpoint_config(endpoint_name, namespace)
 
 
 def test_vllm_intelligent_routing_deployment():
@@ -86,11 +92,13 @@ def test_vllm_intelligent_routing_deployment():
     namespace = "default"
     region = "us-east-2"
     
-    apply_inference_endpoint_config(endpoint_name, namespace)
-    wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
-    invoke_endpoint_and_verify(endpoint_name, region)
-    
-    print("\n=== Test passed: vLLM Intelligent Routing deployment validated ===")
+    try:
+        apply_inference_endpoint_config(endpoint_name, namespace)
+        wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
+        invoke_endpoint_and_verify(endpoint_name, region)
+        print("\n=== Test passed: vLLM Intelligent Routing deployment validated ===")
+    finally:
+        cleanup_inference_endpoint_config(endpoint_name, namespace)
 
 
 def apply_inference_endpoint_config(endpoint_name, namespace):
@@ -164,11 +172,12 @@ def invoke_endpoint_and_verify(endpoint_name, region):
     
     # Chat completion request
     payload = {
+        "model": "/opt/ml/model",
         "messages": [
             {"role": "user", "content": "What is the capital of France?"}
         ],
         "max_tokens": 50,
-        "temperature": 0.7
+        "temperature": 0.0
     }
     
     # First call - populate cache
@@ -209,3 +218,17 @@ def invoke_endpoint_and_verify(endpoint_name, region):
     # Calculate improvement
     improvement = ((first_call_duration - second_call_duration) / first_call_duration) * 100
     print(f"✓ Cache performance: First={first_call_duration:.0f}ms, Second={second_call_duration:.0f}ms, Improvement={improvement:.2f}%")
+
+
+def cleanup_inference_endpoint_config(endpoint_name, namespace):
+    """Delete InferenceEndpointConfig CRD (operator will clean up SageMaker endpoint)"""
+    print(f"\n=== Cleaning up InferenceEndpointConfig: {endpoint_name} ===")
+    result = subprocess.run(
+        ["kubectl", "delete", "inferenceendpointconfig", endpoint_name, "-n", namespace],
+        capture_output=True,
+        text=True
+    )
+    if result.returncode == 0:
+        print(f"Deleted: {result.stdout.strip()}")
+    else:
+        print(f"Cleanup warning: {result.stderr.strip()}")
