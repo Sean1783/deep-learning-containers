@@ -3,7 +3,7 @@ name: HyperPod vLLM Integration Tests
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '17,41 * * * *'  # Twice per hour at 17 and 41 minutes past
 
 concurrency:
   group: hyperpod-vllm-tests

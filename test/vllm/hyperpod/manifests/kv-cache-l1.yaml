@@ -25,7 +25,7 @@ spec:
         cpu: "6"
         memory: 30Gi
         nvidia.com/gpu: "1"
-    image: lmcache/vllm-openai:v0.4.3
+    image: public.ecr.aws/deep-learning-containers/vllm:0.21.0-gpu-py312
     args:
     - "/opt/ml/model"
     - "--max-model-len"
