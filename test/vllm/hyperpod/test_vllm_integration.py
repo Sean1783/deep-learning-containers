@@ -101,6 +101,29 @@ def test_vllm_intelligent_routing_deployment():
         cleanup_inference_endpoint_config(endpoint_name, namespace)
 
 
+def test_vllm_dpd_deployment():
+    """
+    Replicates: deploysDPDWithLlama8B from G5IntegrationTests
+    
+    Workflow:
+    1. Apply InferenceEndpointConfig CRD with DPD (disaggregated prefill-decode)
+    2. Wait for operator to create SageMaker Endpoint (InService)
+    3. Invoke SageMaker Endpoint with short request (below routing threshold)
+    4. Verify DPD architecture works correctly
+    """
+    endpoint_name = "dpd-qwen2"
+    namespace = "default"
+    region = "us-east-2"
+    
+    try:
+        apply_inference_endpoint_config(endpoint_name, namespace)
+        wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
+        invoke_dpd_endpoint_and_verify(endpoint_name, region)
+        print("\n=== Test passed: vLLM DPD deployment validated ===")
+    finally:
+        cleanup_inference_endpoint_config(endpoint_name, namespace)
+
+
 def apply_inference_endpoint_config(endpoint_name, namespace):
     """Apply InferenceEndpointConfig CRD"""
     manifest_path = os.path.join(
@@ -218,6 +241,42 @@ def invoke_endpoint_and_verify(endpoint_name, region):
     # Calculate improvement
     improvement = ((first_call_duration - second_call_duration) / first_call_duration) * 100
     print(f"✓ Cache performance: First={first_call_duration:.0f}ms, Second={second_call_duration:.0f}ms, Improvement={improvement:.2f}%")
+
+
+def invoke_dpd_endpoint_and_verify(endpoint_name, region):
+    """
+    Invoke DPD endpoint with short request (below routing threshold)
+    Replicates: ModelDeployer.deployAndVerify() for DPD
+    """
+    print(f"\n=== Verifying DPD Endpoint: {endpoint_name} ===")
+    
+    runtime = boto3.client('sagemaker-runtime', region_name=region)
+    
+    # Short request below 4096 token routing threshold - goes to decode directly
+    payload = {
+        "model": "/opt/ml/model",
+        "messages": [
+            {"role": "user", "content": "What is the capital of France?"}
+        ],
+        "max_tokens": 50,
+        "temperature": 0.0
+    }
+    
+    print("Invoking endpoint with short request (decode path)...")
+    response = runtime.invoke_endpoint(
+        EndpointName=endpoint_name,
+        ContentType='application/json',
+        Accept='application/json',
+        Body=json.dumps(payload)
+    )
+    
+    result = json.loads(response['Body'].read().decode())
+    assert 'choices' in result, "Response missing 'choices'"
+    assert len(result['choices']) > 0, "Response has no choices"
+    
+    content = result['choices'][0]['message']['content']
+    print(f"✓ DPD inference successful: {content[:100]}...")
+
 
 
 def cleanup_inference_endpoint_config(endpoint_name, namespace):
