@@ -232,3 +232,26 @@ def cleanup_inference_endpoint_config(endpoint_name, namespace):
         print(f"Deleted: {result.stdout.strip()}")
     else:
         print(f"Cleanup warning: {result.stderr.strip()}")
+
+
+def test_vllm_dpd_deployment():
+    """
+    Replicates: deploysDPDWithLlama8B from G5IntegrationTests
+    
+    Workflow:
+    1. Apply InferenceEndpointConfig CRD with pdSpec (DPD configuration)
+    2. Wait for operator to create SageMaker Endpoint (InService)
+    3. Invoke SageMaker Endpoint with inference request
+    4. Verify response
+    """
+    endpoint_name = "dpd-qwen2"
+    namespace = "default"
+    region = "us-east-2"
+    
+    try:
+        apply_inference_endpoint_config(endpoint_name, namespace)
+        wait_for_endpoint_in_service(endpoint_name, region, timeout_minutes=20)
+        invoke_endpoint_and_verify(endpoint_name, region)
+        print("\n=== Test passed: vLLM DPD deployment validated ===")
+    finally:
+        cleanup_inference_endpoint_config(endpoint_name, namespace)
