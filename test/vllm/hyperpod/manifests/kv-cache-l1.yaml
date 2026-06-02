@@ -25,9 +25,14 @@ spec:
         cpu: "6"
         memory: 30Gi
         nvidia.com/gpu: "1"
-    image: lmcache/vllm-openai:v0.4.3
+    image: public.ecr.aws/deep-learning-containers/vllm:server-hyperpod-cuda-v1.1
     args:
+    - "--model"
     - "/opt/ml/model"
+    - "--host"
+    - "0.0.0.0"
+    - "--port"
+    - "8000"
     - "--max-model-len"
     - "10000"
     modelInvocationPort:

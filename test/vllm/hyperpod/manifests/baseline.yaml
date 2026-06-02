@@ -16,18 +16,23 @@ spec:
       region: us-east-2
     modelLocation: 0316-0907
   worker:
-    image: vllm/vllm-openai:latest
-    command: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
+    image: public.ecr.aws/deep-learning-containers/vllm:server-hyperpod-cuda-v1.1
     resources:
       requests:
+        cpu: "6"
+        memory: 30Gi
         nvidia.com/gpu: "1"
       limits:
         nvidia.com/gpu: "1"
     args:
-      - "--model"
-      - "/opt/ml/model"
-      - "--port"
-      - "8000"      
+    - "--model"
+    - "/opt/ml/model"
+    - "--host"
+    - "0.0.0.0"
+    - "--port"
+    - "8000"
+    - "--max-model-len"
+    - "10000"      
     modelInvocationPort:
       containerPort: 8000
       name: http
