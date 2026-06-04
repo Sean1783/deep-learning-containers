@@ -2,7 +2,7 @@ apiVersion: inference.sagemaker.aws.amazon.com/v1
 kind: InferenceEndpointConfig
 metadata:
   name: dpd-qwen2
-  namespace: default
+  namespace: dlc-tests
 spec:
   endpointName: dpd-qwen2
   modelName: qwen2-dpd

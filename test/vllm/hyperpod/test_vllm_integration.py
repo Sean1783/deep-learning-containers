@@ -20,7 +20,7 @@ def test_vllm_kv_cache_l1_deployment():
     4. Verify response
     """
     endpoint_name = "kv-cache-l1"
-    namespace = "default"
+    namespace = "dlc-tests"
     region = "us-east-2"
     
     try:
@@ -43,7 +43,7 @@ def test_vllm_kv_cache_l1_l2_deployment():
     4. Verify KV cache performance with both cache layers
     """
     endpoint_name = "kv-cache-l1-l2"
-    namespace = "default"
+    namespace = "dlc-tests"
     region = "us-east-2"
     
     try:
@@ -66,7 +66,7 @@ def test_vllm_kv_cache_l2_only_deployment():
     4. Verify L2 cache functionality
     """
     endpoint_name = "kv-cache-l2"
-    namespace = "default"
+    namespace = "dlc-tests"
     region = "us-east-2"
     
     try:
@@ -89,7 +89,7 @@ def test_vllm_intelligent_routing_deployment():
     4. Verify prefix-aware routing functionality
     """
     endpoint_name = "intelligent-routing"
-    namespace = "default"
+    namespace = "dlc-tests"
     region = "us-east-2"
     
     try:
@@ -245,7 +245,7 @@ def test_vllm_dpd_deployment():
     4. Verify response
     """
     endpoint_name = "dpd-qwen2"
-    namespace = "default"
+    namespace = "dlc-tests"
     region = "us-east-2"
     
     try:

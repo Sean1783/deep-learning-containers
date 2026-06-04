@@ -2,7 +2,7 @@ apiVersion: inference.sagemaker.aws.amazon.com/v1
 kind: InferenceEndpointConfig
 metadata:
   name: kv-cache-l1-l2
-  namespace: default
+  namespace: dlc-tests
 spec:
   endpointName: kv-cache-l1-l2
   modelName: qwen2-1.5b-v2-test

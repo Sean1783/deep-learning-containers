@@ -2,7 +2,7 @@ apiVersion: inference.sagemaker.aws.amazon.com/v1
 kind: InferenceEndpointConfig
 metadata:
   name: intelligent-routing
-  namespace: default
+  namespace: dlc-tests
 spec:
   endpointName: intelligent-routing
   modelName: qwen2-1.5b-v2-test
